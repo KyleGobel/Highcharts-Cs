@@ -104,12 +104,19 @@ namespace HighchartsCs
                 .Select(ValidateAndFixAxis)
                 .ToArray();
 
+            var dt = default(DateTime); 
+            var isDate = DateTime.TryParse(templateObjs.XAxisCategories[0], out dt);
+
+            var xAxisCategories = isDate 
+                ? string.Join(",",templateObjs.XAxisCategories.Select(x => "new Date(Date.parse('" + x + "'))").ToArray()) 
+                : string.Join(",", templateObjs.XAxisCategories.Select(x => x.StrEscape()));
+
             var result = Render.StringToString(template, new
             {
                 YAxis = CreateAxis(templateObjs.YAxis),
                 TitleText = templateObjs.TitleText.StrEscape(),
                 SubtitleText = templateObjs.SubtitleText.StrEscape(),
-                XAxisCategories = string.Join(",", templateObjs.XAxisCategories.Select(x => x.StrEscape())),
+                XAxisCategories = xAxisCategories,
                 Series = CreateSeries(templateObjs.Series)
             });
             return result;
