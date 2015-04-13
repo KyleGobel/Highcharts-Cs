@@ -1,0 +1,25 @@
+﻿@using HighchartsCs
+@model dynamic
+
+@{
+    ViewBag.Title = "title";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html>
+    <head>
+        <title></title>
+
+    </head>
+    <body>
+        <div id="container" style="min-width:400px; height:400px; margin: 0 auto"></div>
+        @Html.IncludeHighcharts()
+        <script>
+            $(function() {
+                $('#container').highcharts(@Html.MakeChart());
+            })
+        </script>
+    </body>
+</html>
+
