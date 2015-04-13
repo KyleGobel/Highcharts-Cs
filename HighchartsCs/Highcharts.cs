@@ -19,7 +19,7 @@ namespace HighchartsCs
             return new HtmlString(include);
         }
 
-        public static HtmlString MakeChart(this HtmlHelper helper)
+        public static HtmlString MakeChart(this HtmlHelper helper, MultiAxesTemplateRaw template)
         {
             var series = new List<SeriesRaw>
             {
@@ -74,7 +74,7 @@ namespace HighchartsCs
                 }
             };
 
-            var template = new MultiAxesTemplateRaw
+            var template1 = new MultiAxesTemplateRaw
             {
                 Series = series.ToArray(),
                 YAxis = axis.ToArray(),

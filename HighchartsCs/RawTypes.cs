@@ -1,12 +1,35 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Linq;
 
 namespace HighchartsCs
 {
     public class MultiAxesTemplateRaw
     {
+        public MultiAxesTemplateRaw SetXAxis(string[] categories)
+        {
+            this.XAxisCategories = categories;
+            return this;
+        }
+
+        public MultiAxesTemplateRaw SetYAxis(AxisRaw[] yAxis)
+        {
+            YAxis = yAxis;
+            return this;
+        }
+
+        public MultiAxesTemplateRaw AddSeries(SeriesRaw series)
+        {
+            if (Series == null || Series.Any() == false)
+            {
+                Series = new[] {series};
+            }
+            else
+            {
+                var list = Series.ToList();
+                list.Add(series);
+                Series = list.ToArray();
+            }
+            return this;
+        }
         public string TitleText { get; set; }
         public string SubtitleText { get; set; }
         public string[] XAxisCategories { get; set; } 
