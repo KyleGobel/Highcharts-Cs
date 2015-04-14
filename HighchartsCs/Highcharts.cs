@@ -4,7 +4,9 @@ using System.Linq;
 using System.Web;
 using System.Web.Mvc;
 using Chronos;
+using Humanizer;
 using Nustache.Core;
+using ServiceStack;
 
 namespace HighchartsCs
 {
@@ -21,74 +23,82 @@ namespace HighchartsCs
 
         public static HtmlString MakeChart(this HtmlHelper helper, MultiAxesTemplateRaw template)
         {
-            var series = new List<SeriesRaw>
-            {
-                new SeriesRaw
-                {
-                    Name = "Rainfall",
-                    Type = "column",
-                    YAxis = 1,
-                    Data = "[49.9, 71.5, 106.4, 129.2, 144.0, 176.0, 135.6, 148.5, 216.4, 194.1, 95.6, 54.4]",
-                    TooltipValueSuffix = " mm"
-                },
-                new SeriesRaw
-                {
-                    Name = "Sea-Level Pressure",
-                    Type = "spline",
-                    YAxis = 2,
-                    Data =
-                        "[1016, 1016, 1015.9, 1015.5, 1012.3, 1009.5, 1009.6, 1010.2, 1013.1, 1016.9, 1018.2, 1016.7]",
-                    MarkerEnabled = true,
-                    DashStyle = "shortdot",
-                    TooltipValueSuffix = " mb"
-                },
-                new SeriesRaw
-                {
-                    Name = "Temperature",
-                    Type = "spline",
-                    Data = "[7.0, 6.9, 9.5, 14.5, 18.2, 21.5, 25.2, 26.5, 23.3, 18.3, 13.9, 9.6]",
-                    TooltipValueSuffix = " C"
-                }
-            };
-
-            var axis = new List<AxisRaw>
-            {
-                new AxisRaw
-                {
-                    LabelsFormat = "{value} C",
-                    TitleText = "Temperature",
-                    Opposite = true
-                },
-                new AxisRaw
-                {
-                    GridLineWidth = 0,
-                    TitleText = "Rainfall",
-                    LabelsFormat = "{value} mm"
-                },
-                new AxisRaw
-                {
-                    GridLineWidth = 0,
-                    TitleText = "Sea-Level Pressure",
-                    LabelsFormat = "{value} mb",
-                    Opposite = true
-                }
-            };
-
-            var template1 = new MultiAxesTemplateRaw
-            {
-                Series = series.ToArray(),
-                YAxis = axis.ToArray(),
-                SubtitleText = "Source: WorldClimate.com",
-                TitleText = "Average Monthly Weather Data for Tokyo",
-                XAxisCategories =
-                    new[] {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"}
-            };
-
             return new HtmlString(Highcharts.CreateChart(template));
         }
     }
     public class Highcharts
     {
+        public static string MakeMultiAxisChart(string json, string title, string subtitle, string yAxis1Fmt = null, string yAxis2Fmt = null,
+            string yAxis1Title = null, string yAxis2Title = null, string series1Type = "column", string series2Type = "spline")
+        {
+            var dict = json.FromJson<List<Dictionary<string, object>>>();
+            var keys = new List<string>();
+            if (dict != null && dict.FirstOrDefault() != null)
+            {
+                var firstRecord = dict.FirstOrDefault();
+                keys = firstRecord.Keys.ToList();
+            }
+
+            yAxis1Fmt = yAxis1Fmt ?? "{value}";
+            yAxis2Fmt = yAxis2Fmt ?? "{value}";
+            yAxis1Title = yAxis1Title ?? keys[1].Humanize();
+            yAxis2Title = yAxis2Title ?? keys[2].Humanize();
+
+
+            //consider x axis to be the first column
+            var columns = dict.Select(x => x[keys[0]].ToString());
+
+            var axis = new[]
+            {
+                new AxisRaw
+                {
+                    Opposite = false,
+                    GridLineWidth = 1,
+                    LabelsFormat = yAxis1Fmt,
+                    LabelsStyleColor = "'#6D869F'",
+                    TitleStyleColor = "'#707070'",
+                    TitleText =yAxis1Title 
+                },
+                new AxisRaw
+                {
+                    Opposite = true,
+                    GridLineWidth = 1,
+                    LabelsFormat = yAxis2Fmt,
+                    LabelsStyleColor = "'#6D869F'",
+                    TitleStyleColor = "'#707070'",
+                    TitleText = yAxis2Title 
+                }
+            };
+
+            var series = new[]
+            {
+                new SeriesRaw
+                {
+                    Name = keys[1].Humanize(),
+                    Data = "[" + string.Join(",", dict.Select(x => x[keys[1]].ToString())) + "]",
+                    Type = series1Type,
+                    YAxis = 0
+                },
+                new SeriesRaw
+                {
+                    Name = keys[2].Humanize(),
+                    Data = "[" + string.Join(",", dict.Select(x => x[keys[2]].ToString())) + "]",
+                    Type = series2Type,
+                    YAxis = 1
+                }
+            };
+
+            var template = new MultiAxesTemplateRaw
+            {
+                Series = series,
+                XAxisCategories = columns.ToArray(),
+                YAxis = axis,
+                SubtitleText = subtitle,
+                TitleText = title
+            };
+
+            return Highcharts.CreateChart(template);
+        }
         public static string CreateChart(MultiAxesTemplateRaw templateObjs)
         {
             var template = EmbeddedResource.Get("multi-axes.js");
