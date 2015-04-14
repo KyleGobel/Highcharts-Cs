@@ -8,6 +8,9 @@
     subtitle: {
             text: {{SubtitleText}} 
     },
+    credits: {
+        enabled : false
+    },
     xAxis: [{
         categories: [{{XAxisCategories}}],
         crosshair: true

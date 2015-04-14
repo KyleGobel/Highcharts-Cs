@@ -28,7 +28,7 @@ namespace HighchartsCs
     }
     public class Highcharts
     {
-        public static string MakeMultiAxisChart(string json, string title, string subtitle, string yAxis1Fmt = null, string yAxis2Fmt = null,
+        public static string MakeMultiAxisChart(string json, string title, string subtitle, string yAxis1Fmt = "{value}", string yAxis2Fmt = "{value}",
             string yAxis1Title = null, string yAxis2Title = null, string series1Type = "column", string series2Type = "spline")
         {
             var dict = json.FromJson<List<Dictionary<string, object>>>();
@@ -39,8 +39,6 @@ namespace HighchartsCs
                 keys = firstRecord.Keys.ToList();
             }
 
-            yAxis1Fmt = yAxis1Fmt ?? "{value}";
-            yAxis2Fmt = yAxis2Fmt ?? "{value}";
             yAxis1Title = yAxis1Title ?? keys[1].Humanize();
             yAxis2Title = yAxis2Title ?? keys[2].Humanize();
 
